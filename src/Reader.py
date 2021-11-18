@@ -81,11 +81,11 @@ class GatheringBansReader(Reader):
             )
         return gathering_bans_df
 
-    def read_and_process_data(self, state_filters=None, export=False, export_path=None):
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         gathering_bans_df = self.read_raw_data()
         # Filter to specific State FIPS Codes
-        if state_filters:
-            gathering_bans_df = gathering_bans_df[gathering_bans_df['FIPS_State'].isin(state_filters)]
+        if state_filter:
+            gathering_bans_df = gathering_bans_df[gathering_bans_df['FIPS_State'].isin(state_filter)]
         # Formatting dates
         gathering_bans_df['date'] = gathering_bans_df['date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
         # Renaming columns to make it clear what they represent once joined to other CDC mandates data
@@ -152,11 +152,11 @@ class MaskMandatesReader(Reader):
             )
         return mask_mandates_df
 
-    def read_and_process_data(self, state_filters=None, export=False, export_path=None):
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         mask_mandates_df = self.read_raw_data()
         # Filter to specific State FIPS Codes
-        if state_filters:
-            mask_mandates_df = mask_mandates_df[mask_mandates_df['FIPS_State'].isin(state_filters)]
+        if state_filter:
+            mask_mandates_df = mask_mandates_df[mask_mandates_df['FIPS_State'].isin(state_filter)]
         # Formatting dates
         mask_mandates_df['date'] = mask_mandates_df['date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
         # Renaming columns to make it clear what they represent once joined to other CDC mandates data
@@ -208,11 +208,11 @@ class StayAtHomeOrdersReader(Reader):
             )
         return stay_df
 
-    def read_and_process_data(self, state_filters=None, export=False, export_path=None):
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         stay_at_home_df = self.read_raw_data()
         # Filter to specific State FIPS Codes
-        if state_filters:
-            stay_at_home_df = stay_at_home_df[stay_at_home_df['FIPS_State'].isin(state_filters)]
+        if state_filter:
+            stay_at_home_df = stay_at_home_df[stay_at_home_df['FIPS_State'].isin(state_filter)]
         # Formatting dates
         stay_at_home_df['date'] = stay_at_home_df['date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
         # Renaming columns to make it clear what they represent once joined to other CDC mandates data
@@ -281,11 +281,11 @@ class BarClosuresReader(Reader):
             )
         return bars_df
 
-    def read_and_process_data(self, state_filters=None, export=False, export_path=None):
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         bars_df = self.read_raw_data()
         # Filter to specific State FIPS Codes
-        if state_filters:
-            bars_df = bars_df[bars_df['FIPS_State'].isin(state_filters)]
+        if state_filter:
+            bars_df = bars_df[bars_df['FIPS_State'].isin(state_filter)]
         # Formatting dates
         bars_df['date'] = bars_df['date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
         # Renaming columns to make it clear what they represent once joined to other CDC mandates data
@@ -359,11 +359,11 @@ class RestaurantClosuresReader(Reader):
             )
         return restaurants_df
 
-    def read_and_process_data(self, state_filters=None, export=False, export_path=None):
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         restaurants_df = self.read_raw_data()
         # Filter to specific State FIPS Codes
-        if state_filters:
-            restaurants_df = restaurants_df[restaurants_df['FIPS_State'].isin(state_filters)]
+        if state_filter:
+            restaurants_df = restaurants_df[restaurants_df['FIPS_State'].isin(state_filter)]
         # Formatting dates
         restaurants_df['date'] = restaurants_df['date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
         # Renaming columns to make it clear what they represent once joined to other CDC mandates data
