@@ -360,7 +360,7 @@ class RestaurantClosuresReader(Reader):
         return restaurants_df
 
     def read_and_process_data(self, state_filter=None, export=False, export_path=None):
-        restaurants_df = self.read_raw_data()
+        restaurants_df = self.read_raw_data()   
         # Filter to specific State FIPS Codes
         if state_filter:
             restaurants_df = restaurants_df[restaurants_df['FIPS_State'].isin(state_filter)]
@@ -413,3 +413,47 @@ class RestaurantClosuresReader(Reader):
             restaurants_df.to_csv(export_path, index=False)
         # Return processed df
         return restaurants_df
+
+class CasesAndDeathsReader(Reader):
+    def __init__(self, home_dir=''):
+        data_path = 'data/cases_and_deaths/us-counties.csv'
+        super().__init__(home_dir, data_path)
+        if not self.check_data_exists():
+            print(f'Cases and Deaths data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
+    
+    def read_raw_data(self):
+        cases_deaths_df = pd.read_csv(
+            self.home_dir + self.data_path
+            , delimiter=','
+            , dtype={'fips':str}
+            , usecols=[
+                'date'
+                , 'fips'
+                , 'cases'
+                , 'deaths'
+                ]
+            )
+        return cases_deaths_df
+
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
+        cases_deaths_df = self.read_raw_data()
+        # Filter out NA FIPS codes
+        cases_deaths_df = cases_deaths_df[cases_deaths_df['fips'].notna()].copy()
+        # Create FIPS state codes
+        cases_deaths_df['FIPS_State'] = cases_deaths_df['fips'].apply(lambda x: x[:2])
+        # Filter to specific State FIPS Codes
+        if state_filter:
+            cases_deaths_df = cases_deaths_df[cases_deaths_df['FIPS_State'].astype('int32').isin(state_filter)]
+        # Drop State codes
+        cases_deaths_df = cases_deaths_df.drop(['FIPS_State'], axis=1)
+        # Formatting dates
+        cases_deaths_df['date'] = cases_deaths_df['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+        # Rename 'fips' for consistency
+        cases_deaths_df = cases_deaths_df.rename(columns={'fips':'FIPS'})
+        # Export if desired:
+        if export:
+            if export_path is None:
+                export_path = self.home_dir + 'data/transformed_data/cases_deaths_df.csv'
+            cases_deaths_df.to_csv(export_path, index=False)
+        # Return processed df
+        return cases_deaths_df

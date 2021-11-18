@@ -1,4 +1,4 @@
-from src.Reader import BarClosuresReader, GatheringBansReader, MaskMandatesReader, RestaurantClosuresReader, StayAtHomeOrdersReader
+from src.Reader import BarClosuresReader, CasesAndDeathsReader, GatheringBansReader, MaskMandatesReader, RestaurantClosuresReader, StayAtHomeOrdersReader
 import pandas as pd
 
 class PreProcessor:
@@ -11,6 +11,7 @@ class PreProcessor:
         self.maskMandatesReader = MaskMandatesReader(home_dir=home_dir)
         self.restaurantClosuresReader = RestaurantClosuresReader(home_dir=home_dir)
         self.stayAtHomeOrdersReader = StayAtHomeOrdersReader(home_dir=home_dir)
+        self.casesAndDeathsReader = CasesAndDeathsReader(home_dir=home_dir)
 
     def clear(self):
         self.current_data = None
@@ -26,6 +27,8 @@ class PreProcessor:
         self.current_data = self.init_cdc_data()
         # Bring in Vaccinations data and merge to current data
         # Bring in Cases and Deaths data and merge to current data
+
+        # Transform FIPS codes into columns.
 
     def init_cdc_data(self):
         cdc_regs_df = self.gatheringBansReader.read_and_process_data(state_filter=self.state_filter)
@@ -53,3 +56,6 @@ class PreProcessor:
                         , on=['date', 'FIPS']
                         )
         return cdc_regs_df
+
+    def init_cases_and_deaths_data(self):
+        return self.casesAndDeathsReader.read_and_process_data(state_filter=self.state_filter)
