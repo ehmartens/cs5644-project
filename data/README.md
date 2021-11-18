@@ -1,0 +1,38 @@
+## Data
+
+- Cases and Deaths
+    - Location: `cases_and_deaths`
+    - Filename: `us-counties.csv`
+        - Source: 
+        - URL:
+        - Download date:
+- CDC Regulations
+    - Location: `cdc_regs`
+    - Data:
+        - Filename: `U.S._State_and_Territorial_Gathering_Bans__March_11__2020-August_15__2021_by_County_by_Day.csv`
+            - Source: CDC
+            - URL: https://data.cdc.gov/Policy-Surveillance/U-S-State-and-Territorial-Gathering-Bans-March-11-/7xvh-y5vh
+            - Download date: 2021/09/27
+        - Filename: `U.S._State_and_Territorial_Orders_Closing_and_Reopening_Bars_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv`
+            - Source: CDC
+            - URL: https://data.cdc.gov/Policy-Surveillance/U-S-State-and-Territorial-Orders-Closing-and-Reope/9kjw-3miq
+            - Download date: 2021/09/27
+        - Filename: `U.S._State_and_Territorial_Orders_Closing_and_Reopening_Restaurants_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv`
+            - Source: CDC
+            - URL: https://data.cdc.gov/Policy-Surveillance/U-S-State-and-Territorial-Orders-Closing-and-Reope/azmd-939x
+            - Download date: 2021/09/27
+        - Filename: `U.S._State_and_Territorial_Public_Mask_Mandates_From_April_10__2020_through_August_15__2021_by_County_by_Day.csv`
+            - Source: CDC
+            - URL: https://data.cdc.gov/Policy-Surveillance/U-S-State-and-Territorial-Public-Mask-Mandates-Fro/62d6-pm5i
+            - Download date: 2021/09/27
+        - Filename: `U.S._State_and_Territorial_Stay-At-Home_Orders__March_15__2020___August_15__2021_by_County_by_Day.csv`
+            - Source: CDC
+            - URL: https://data.cdc.gov/Policy-Surveillance/U-S-State-and-Territorial-Stay-At-Home-Orders-Marc/y2iy-8irm
+            - Download date: 2021/09/27
+- Vaccinations
+    - Location: `vaccinations`
+    - Data:
+        - Filename: `COVID-19_Vaccinations_in_the_United_States_County.csv`
+            - Source: 
+            - URL: 
+            - Download date: 2021/10/26
