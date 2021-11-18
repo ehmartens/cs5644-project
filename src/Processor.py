@@ -1,4 +1,3 @@
-from src import Reader
 from src.Reader import BarClosuresReader, CasesAndDeathsReader, GatheringBansReader, MaskMandatesReader, RestaurantClosuresReader, StayAtHomeOrdersReader, VaccinationsReader
 import pandas as pd
 
@@ -26,11 +25,17 @@ class PreProcessor:
 
     def load_processed_data(self,):
         # Bring in CDC data and merge with  Vaccinations data
-        self.current_data = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
+        merged_df = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
         # Bring in Cases and Deaths data and merge to current data
-        self.current_data = self.current_data.merge(self.init_cases_and_deaths_data(), how='left', on=['date', 'FIPS'])
+        merged_df = merged_df.merge(self.init_cases_and_deaths_data(), how='left', on=['date', 'FIPS'])
+        # Make columns numeric (except FIPS and date)
+        num_cols = merged_df.columns.drop(['date', 'FIPS'])
+        merged_df[num_cols] = merged_df[num_cols].apply(pd.to_numeric, errors='ignore')
         # Transform FIPS codes into columns.
-        # self.current_data = convert_categorical()
+        merged_df['STATE'] = merged_df['FIPS'].apply(lambda x: x[:2])
+        merged_df = self.barClosuresReader.convert_categorical(merged_df) # TODO this is hacky, fix this
+        # Set current data
+        self.current_data = merged_df
 
     def init_cdc_data(self):
         cdc_regs_df = self.gatheringBansReader.read_and_process_data(state_filter=self.state_filter)
