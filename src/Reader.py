@@ -457,3 +457,56 @@ class CasesAndDeathsReader(Reader):
             cases_deaths_df.to_csv(export_path, index=False)
         # Return processed df
         return cases_deaths_df
+
+
+class VaccinationsReader(Reader):
+    def __init__(self, home_dir=''):
+        data_path = 'data/vaccinations/COVID-19_Vaccinations_in_the_United_States_County.csv'
+        super().__init__(home_dir, data_path)
+        if not self.check_data_exists():
+            print(f'Vaccinations data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
+    
+    def read_raw_data(self):
+        vaccinations_df = pd.read_csv(
+            self.home_dir + self.data_path
+            , delimiter=','
+            , dtype={
+                'FIPS' : str
+                }
+            , usecols=[
+                'Date'
+                , 'FIPS'
+                , 'Series_Complete_Pop_Pct'
+                , 'Administered_Dose1_Pop_Pct' # Are these also counted in the above
+                , 'Metro_status' # Will need to convert this into a boolean fields
+                , 'Series_Complete_Pop_Pct_UR_Equity' # Not sure how this is working, it's either null or a value 1-8
+                ]
+            )
+        return vaccinations_df
+
+    def read_and_process_data(self, state_filter=None, export=False, export_path=None):
+        vaccinations_df = self.read_raw_data()
+        # Filter out NA FIPS codes
+        vaccinations_df = vaccinations_df[vaccinations_df['FIPS'] != 'UNK']
+        # Create FIPS state codes
+        vaccinations_df['FIPS_State'] = vaccinations_df['FIPS'].apply(lambda x: x[:2])
+        # Filter to specific State FIPS Codes
+        if state_filter:
+            vaccinations_df = vaccinations_df[vaccinations_df['FIPS_State'].astype('int32').isin(state_filter)]
+        # Drop State codes
+        vaccinations_df = vaccinations_df.drop(['FIPS_State'], axis=1)
+        # Set date
+        vaccinations_df['Date'] = vaccinations_df['Date'].apply(lambda x: datetime.strptime(x,'%m/%d/%Y'))
+        # Drop duplicates
+        vaccinations_df = vaccinations_df.drop_duplicates()
+        # Changing Metro status to boolean
+        vaccinations_df['Metro_status'] = vaccinations_df['Metro_status'].replace('Metro', 1).replace('Non-metro', 0)
+        # Renaming to match cdc regs files
+        vaccinations_df = vaccinations_df.rename(columns={'Date': 'date', 'Metro_status' :'is_metro'})
+        # Export if desired:
+        if export:
+            if export_path is None:
+                export_path = self.home_dir + 'data/transformed_data/vaccinations_df.csv'
+            vaccinations_df.to_csv(export_path, index=False)
+        # Return processed df
+        return vaccinations_df
