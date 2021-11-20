@@ -98,7 +98,8 @@ class GatheringBansReader(Reader):
                             )
         # Renaming gathering_ban_order_group fields to be more amenable to transformation:
         order_group_dict = {
-            'Ban of gatherings over 1-10 people': 'ban_over_1_to_10_ppl'
+            'Bans gatherings of any size' : 'ban_gatherings_of_any_size'
+            , 'Ban of gatherings over 1-10 people': 'ban_over_1_to_10_ppl'
             , 'Ban of gatherings over 11-25 people' : 'ban_over_11_to_25_ppl'
             , 'Ban of gatherings over 26-50 people': 'ban_over_26_to_50_ppl'
             , 'Ban of gatherings over 51-100 people': 'ban_over_51_to_100_ppl'
@@ -108,8 +109,12 @@ class GatheringBansReader(Reader):
         gathering_bans_df['gathering_ban_order_group'] = gathering_bans_df['gathering_ban_order_group'].apply(lambda x: order_group_dict[x]) 
         # Renaming gathering_ban_source_of_action fields to be more amenable to transformation:
         source_of_action_dict = {
-            'Official': 'official'
+            'News' : 'news'
+            , 'News Media' : 'news'
+            , 'Offcial': 'official' # Typo in source data
+            , 'Official': 'official'
             , 'Official Announcement' : 'official_announcement'
+            , 'Press Release' : 'press_release'
         }
         gathering_bans_df['gathering_ban_source_of_action'] = gathering_bans_df['gathering_ban_source_of_action'].apply(lambda x: x if pd.isna(x) else source_of_action_dict[x]) 
         # Transform to categorical variables as needed.
@@ -225,8 +230,10 @@ class StayAtHomeOrdersReader(Reader):
                             )
         # Renaming stay_at_home_order_code fields to be more amenable to transformation:
         order_group_dict = {
-            'Mandatory for all individuals': 'mandatory_for_all_individuals'
+            'Advisory/Recommendation' : 'advisory'
+            , 'Mandatory for all individuals': 'mandatory_for_all_individuals'
             , 'Mandatory only for all individuals in certain areas of the jurisdiction' : 'mandatory_only_for_all_individuals_in_certain_areas_of_the_jurisdiction'
+            , 'Mandatory only for at-risk individuals in the jurisdiction' : 'mandatory_only_for_at_risk_individuals_in_the_jurisdiction'
             , 'No order for individuals to stay home': 'no_order_for_individuals_to_stay_home'
         }
         stay_at_home_df['Stay_at_Home_Order_Recommendation'] = stay_at_home_df['Stay_at_Home_Order_Recommendation'].apply(lambda x: x if pd.isna(x) else order_group_dict[x]) 
@@ -236,6 +243,7 @@ class StayAtHomeOrdersReader(Reader):
             , 'Unknown' :'unknown'
             , 'Local orders moot due to statewide mandate': 'local_orders_moot_due_to_statewide_mandate'
             , 'Expressly Does Not Preempt': 'expressly_does_not_preempt'
+            , 'Expressly Preempts' : 'expressly_preempts'
         }
         stay_at_home_df['stay_at_home_express_preemption'] = stay_at_home_df['stay_at_home_express_preemption'].apply(lambda x: x if pd.isna(x) else express_preemption_dict[x]) 
         # Transform categorical variables
@@ -309,8 +317,11 @@ class BarClosuresReader(Reader):
         bars_df['bars_action'] = bars_df['bars_action'].apply(lambda x: x if pd.isna(x) else action_dict[x]) 
         # Renaming percent_capacity fields to be more amenable to transformation:
         pct_capacity_dict = {
-            'Not specified': 'not_specified'
+            'Not specified': 'not_specified' # TODO consider changing this to a numberical variable
+            , '30%' : '30_percent'
+            , '35%' : '35_percent'
             , '50%' : '50_percent'
+            , '60%' : '60_percent'
             , '75%' : '75_percent'
             , '100%' : '100_percent'
         }
@@ -388,9 +399,12 @@ class RestaurantClosuresReader(Reader):
 
         # Renaming percent_capacity fields to be more amenable to transformation:
         pct_capacity_dict = {
-            'Not specified': 'not_specified'
+            'Not specified': 'not_specified' # TODO consider changing this to a numberical variable
             , '25%' : '25_percent'
+            , '30%' : '30_percent'
+            , '35%' : '35_percent'
             , '50%' : '50_percent'
+            , '60%' : '60_percent'
             , '75%' : '75_percent'
             , '100%' : '100_percent'
         }
