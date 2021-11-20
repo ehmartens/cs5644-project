@@ -492,7 +492,7 @@ class VaccinationsReader(Reader):
                 , 'FIPS'
                 , 'Series_Complete_Pop_Pct'
                 , 'Administered_Dose1_Pop_Pct' # Are these also counted in the above
-                , 'Metro_status' # Will need to convert this into a boolean fields
+                , 'Metro_status' # Will need to convert this into a boolean fields 
                 , 'Series_Complete_Pop_Pct_UR_Equity' # Not sure how this is working, it's either null or a value 1-8
                 ]
             )
