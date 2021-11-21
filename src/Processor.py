@@ -23,7 +23,15 @@ class PreProcessor:
     def set_current_data(self, data):
         self.current_data = data
 
-    def load_processed_data(self,):
+    def load_processed_data(self):
+        self.load_processed_data_without_fips_as_columns() # TODO fix this so that it checks if the current data is already loaded instead of reloading.
+        merged_df = self.get_current_data()
+        # Transform FIPs into boolean columns
+        merged_df = self.barClosuresReader.convert_categorical(merged_df) # TODO this is hacky, fix this
+        # Set current data
+        self.current_data = merged_df
+
+    def load_processed_data_without_fips_as_columns(self):
         # Bring in CDC data and merge with  Vaccinations data
         merged_df = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
         # Bring in Cases and Deaths data and merge to current data
@@ -31,9 +39,20 @@ class PreProcessor:
         # Make columns numeric (except FIPS and date)
         num_cols = merged_df.columns.drop(['date', 'FIPS'])
         merged_df[num_cols] = merged_df[num_cols].apply(pd.to_numeric, errors='ignore')
-        # Transform FIPS codes into columns.
+        # Fillnas of Vaccine columns with 0
+        merged_df['Series_Complete_Pop_Pct'] = merged_df['Series_Complete_Pop_Pct'].fillna(0)
+        merged_df['Administered_Dose1_Pop_Pct'] = merged_df['Administered_Dose1_Pop_Pct'].fillna(0)
+        merged_df['Series_Complete_Pop_Pct_UR_Equity'] = merged_df['Series_Complete_Pop_Pct_UR_Equity'].fillna(0)
+        # Filnas in the metro column based on the values in the metro column for that same FIPS code
+        merged_df['is_metro'] = merged_df['is_metro'].fillna(merged_df.groupby(['FIPS'])['is_metro'].transform('max'))
+        # Create a 'month' feature based on the date column
+        merged_df['date'] = merged_df['date'].astype('datetime64[ns]')
+        merged_df['month'] = merged_df['date'].apply(lambda x: x.strftime('%B'))
+        # Create a time index based on the number of days since t0
+        min_date = merged_df['date'].min()
+        merged_df['days_from_start'] = merged_df['date'].apply(lambda x: (x - min_date).days)
+        # Transform FIPS codes for county and state, month values into columns.
         merged_df['STATE'] = merged_df['FIPS'].apply(lambda x: x[:2])
-        merged_df = self.barClosuresReader.convert_categorical(merged_df) # TODO this is hacky, fix this
         # Set current data
         self.current_data = merged_df
 
