@@ -36,6 +36,9 @@ class PreProcessor:
         merged_df = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
         # Bring in Cases and Deaths data and merge to current data
         merged_df = merged_df.merge(self.init_cases_and_deaths_data(), how='left', on=['date', 'FIPS'])
+        # Fill NAs in cases and deaths data with 0s
+        merged_df['cases'] = merged_df['cases'].fillna(0)
+        merged_df['deaths'] = merged_df['deaths'].fillna(0)
         # Make columns numeric (except FIPS and date)
         num_cols = merged_df.columns.drop(['date', 'FIPS'])
         merged_df[num_cols] = merged_df[num_cols].apply(pd.to_numeric, errors='ignore')
@@ -51,7 +54,7 @@ class PreProcessor:
         # Create a time index based on the number of days since t0
         min_date = merged_df['date'].min()
         merged_df['days_from_start'] = merged_df['date'].apply(lambda x: (x - min_date).days)
-        # Transform FIPS codes for county and state, month values into columns.
+        # Transform FIPS codes for county into STATE column
         merged_df['STATE'] = merged_df['FIPS'].apply(lambda x: x[:2])
         # Set current data
         self.current_data = merged_df
