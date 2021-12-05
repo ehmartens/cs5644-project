@@ -66,6 +66,7 @@ class Modeler:
 
         rmse = metrics.mean_squared_error(y_test, y_pred, squared=False)
         r2 = metrics.r2_score(y_test, y_pred)
+        print('Model testing scores:')
         print('RMSE: %.2f' % rmse)
         print('R^2 Score: %.2f' % r2)
 

@@ -464,6 +464,45 @@ class CasesAndDeathsReader(Reader):
         cases_deaths_df['date'] = cases_deaths_df['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
         # Rename 'fips' for consistency
         cases_deaths_df = cases_deaths_df.rename(columns={'fips':'FIPS'})
+
+        # Create smoothed new cases target:
+        # Calculate new cases 
+        cases_deaths_df = cases_deaths_df.sort_values(['FIPS', 'date'])
+        cases_deaths_df = cases_deaths_df.set_index(['FIPS', 'date'], drop=True)
+        cases_deaths_df['previous_day_cases'] = cases_deaths_df.groupby('FIPS', as_index=False)[['cases']].shift(periods=1).fillna(0)
+        cases_deaths_df['new_cases'] = cases_deaths_df['cases'] - cases_deaths_df['previous_day_cases']
+        # Remove bad data points that show negative new cases.
+        cases_deaths_df['new_cases'] = cases_deaths_df['new_cases'].apply(lambda x: max(x, 0))
+        # Create a smoothed 'new cases' value based on the rolling 7 day avg
+        cases_deaths_df = cases_deaths_df.reset_index()
+        cases_deaths_df['smoothed_new_cases'] = cases_deaths_df.groupby(['FIPS'], as_index=False)['new_cases'].rolling(7).mean().reset_index(drop=True)
+        cases_deaths_df['smoothed_new_cases'] = cases_deaths_df['smoothed_new_cases'].fillna(0)
+
+        # Create 8, 9, 10 day lagged cases feature
+        cases_deaths_df['8_days_prior_cases'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_cases']].shift(periods=8).fillna(0)
+        cases_deaths_df['9_days_prior_cases'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_cases']].shift(periods=9).fillna(0)
+        cases_deaths_df['10_days_prior_cases'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_cases']].shift(periods=10).fillna(0)
+        
+        # Create smoothed new deaths target:
+        # Calculate new deaths 
+        cases_deaths_df = cases_deaths_df.sort_values(['FIPS', 'date'])
+        cases_deaths_df = cases_deaths_df.set_index(['FIPS', 'date'], drop=True)
+        cases_deaths_df['previous_day_deaths'] = cases_deaths_df.groupby('FIPS', as_index=False)[['deaths']].shift(periods=1)
+        cases_deaths_df['new_deaths'] = cases_deaths_df['deaths'] - cases_deaths_df['previous_day_deaths']
+        # Remove bad data points that show negative new deaths.
+        cases_deaths_df['new_deaths'] = cases_deaths_df['new_deaths'].apply(lambda x: max(x, 0))
+        # Create a smoothed 'new deaths' value based on the rolling 7 day avg
+        cases_deaths_df = cases_deaths_df.reset_index()
+        cases_deaths_df['smoothed_new_deaths'] = cases_deaths_df.groupby(['FIPS'], as_index=False)['new_deaths'].rolling(7).mean().reset_index(drop=True)
+        cases_deaths_df['smoothed_new_deaths'] = cases_deaths_df['smoothed_new_deaths'].fillna(0)
+
+        # Create 8, 9, 10 day lagged deaths feature
+        cases_deaths_df['8_days_prior_deaths'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_deaths']].shift(periods=8).fillna(0)
+        cases_deaths_df['9_days_prior_deaths'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_deaths']].shift(periods=9).fillna(0)
+        cases_deaths_df['10_days_prior_deaths'] = cases_deaths_df.groupby(['FIPS'], as_index=False)[['smoothed_new_deaths']].shift(periods=10).fillna(0)
+
+        # TODO: should we round to the nearest integer on both cases and deaths?
+
         # Export if desired:
         if export:
             if export_path is None:
