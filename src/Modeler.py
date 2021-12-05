@@ -29,23 +29,29 @@ class Modeler:
         return X_train, y_train_cases, y_train_deaths, X_test, y_test_cases, y_test_deaths
 
 
-    def cv_model(self, model, X_train, y_train):
+    def cv_model(self, model, X, y):
         """
         Performs 5-fold cross validation on model and reports the mean and std dev of
         'neg_root_mean_squared_error', 'r2', and 'explained_variance' for the 5 folds
         as a dictionary
         """
-        scores = model_selection.cross_validate(
-            model
-            , X_train
-            , y_train
-            , cv=5
-            , scoring=['neg_root_mean_squared_error', 'r2', 'explained_variance']
-        )
 
-        nRMSE = scores['test_neg_root_mean_squared_error']
-        r2 = scores['test_r2']
-        var = scores['test_explained_variance']
+        kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=1)
+
+        nRMSE, r2, var = [], [], []
+
+        for train_index, test_index in kfold.split(X):
+            X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+            y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+            model.fit(X_train, y_train)
+
+            y_pred = model.predict(X_test)
+
+            nRMSE += [metrics.mean_squared_error(y_test, y_pred, squared=False)]
+            r2 += [metrics.r2_score(y_test, y_pred)]
+            var += [metrics.explained_variance_score(y_test, y_pred)]
+
         scores_dict = {
             'Negative RMSE' : (np.mean(nRMSE), np.std(nRMSE)) # Tuple of neg MSE (mean, std) across 5 folds
             , 'r2': (np.mean(r2), np.std(r2)) # Tuple of r2 (mean, std) across 5 folds
