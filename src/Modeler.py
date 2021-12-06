@@ -53,7 +53,7 @@ class Modeler:
             var += [metrics.explained_variance_score(y_test, y_pred)]
 
         scores_dict = {
-            'Negative RMSE' : (np.mean(nRMSE), np.std(nRMSE)) # Tuple of neg MSE (mean, std) across 5 folds
+            'RMSE' : (np.mean(nRMSE), np.std(nRMSE)) # Tuple of neg MSE (mean, std) across 5 folds
             , 'r2': (np.mean(r2), np.std(r2)) # Tuple of r2 (mean, std) across 5 folds
             , 'Explained Variance': (np.mean(var), np.std(var)) # Tuple of r2 (mean, std) across 5 folds    
         }
