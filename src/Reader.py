@@ -1,5 +1,6 @@
 from datetime import datetime 
 from os.path import exists
+from src import fips_mappings
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
@@ -442,6 +443,7 @@ class CasesAndDeathsReader(Reader):
             , dtype={'fips':str}
             , usecols=[
                 'date'
+                , 'state'
                 , 'fips'
                 , 'cases'
                 , 'deaths'
@@ -451,19 +453,64 @@ class CasesAndDeathsReader(Reader):
 
     def read_and_process_data(self, state_filter=None, export=False, export_path=None):
         cases_deaths_df = self.read_raw_data()
-        # Filter out NA FIPS codes
-        cases_deaths_df = cases_deaths_df[cases_deaths_df['fips'].notna()].copy()
-        # Create FIPS state codes
-        cases_deaths_df['FIPS_State'] = cases_deaths_df['fips'].apply(lambda x: x[:2])
-        # Filter to specific State FIPS Codes
-        if state_filter:
-            cases_deaths_df = cases_deaths_df[cases_deaths_df['FIPS_State'].astype('int32').isin(state_filter)]
-        # Drop State codes
-        cases_deaths_df = cases_deaths_df.drop(['FIPS_State'], axis=1)
         # Formatting dates
         cases_deaths_df['date'] = cases_deaths_df['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
         # Rename 'fips' for consistency
         cases_deaths_df = cases_deaths_df.rename(columns={'fips':'FIPS'})
+
+        ### Distributing cases and deaths from unknown counties across the state ###
+        state_codes = pd.DataFrame(fips_mappings.state_fips_dict)
+        # Create df of NA FIPS codes
+        unk_cd_df = cases_deaths_df[cases_deaths_df['FIPS'].isna()].merge(state_codes, left_on='state', right_on='state_name')
+        # Filter to desired state FIPS codes
+        if state_filter:
+            unk_cd_df = unk_cd_df[unk_cd_df['fips_code'].astype('int32').isin(state_filter)]
+        # Create a single df for the cases/deaths for each state that have an unknown county on a given date 
+        unk_cd_df = unk_cd_df[['date','fips_code', 'cases', 'deaths']].groupby(['date', 'fips_code']).sum().reset_index()
+
+        # Filter out NA FIPS codes
+        cases_deaths_df = cases_deaths_df[cases_deaths_df['FIPS'].notna()].copy()
+        # Create FIPS state codes
+        cases_deaths_df['FIPS_State'] = cases_deaths_df['FIPS'].apply(lambda x: x[:2])
+        # Filter to specific State FIPS Codes
+        if state_filter:
+            cases_deaths_df = cases_deaths_df[cases_deaths_df['FIPS_State'].astype('int32').isin(state_filter)]
+
+        # Create county weight: Choose to use data as of 2021-10-01 for distribution
+        datemask = cases_deaths_df['date'] == '2021-10-01'
+        county_df = cases_deaths_df[datemask][['FIPS', 'FIPS_State', 'cases', 'deaths']].groupby(['FIPS', 'FIPS_State']).sum().reset_index()
+        state_df = cases_deaths_df[datemask][['FIPS', 'FIPS_State', 'cases', 'deaths']].groupby(['FIPS_State']).sum().reset_index()
+
+        county_weights = county_df.merge(state_df, left_on='FIPS_State', right_on='FIPS_State', how='left', suffixes=('_county', '_state'))
+        county_weights['cases_weighting'] = county_weights['cases_county'] / county_weights['cases_state']
+        county_weights['deaths_weighting'] = county_weights['deaths_county'] / county_weights['deaths_state']
+
+        cases_deaths_df = cases_deaths_df.merge(
+            county_weights[['FIPS', 'cases_weighting', 'deaths_weighting']]
+            , left_on=['FIPS']
+            , right_on=['FIPS']
+            , how='left')
+        cases_deaths_df['cases_weighting'] = cases_deaths_df['cases_weighting'].fillna(0)
+        cases_deaths_df['deaths_weighting'] = cases_deaths_df['deaths_weighting'].fillna(0)
+
+        cases_deaths_df = cases_deaths_df.merge(
+            unk_cd_df
+            , left_on=['date','FIPS_State']
+            , right_on=['date','fips_code']
+            , how='left'
+            , suffixes=('','_unknown'))
+        cases_deaths_df['cases_unknown'] = cases_deaths_df['cases_unknown'].fillna(0)
+        cases_deaths_df['deaths_unknown'] = cases_deaths_df['deaths_unknown'].fillna(0)
+        cases_deaths_df['cases_from_unknown'] = (cases_deaths_df['cases_weighting'] * cases_deaths_df['cases_unknown'])
+        cases_deaths_df['deaths_from_unknown'] = (cases_deaths_df['deaths_weighting'] * cases_deaths_df['deaths_unknown'])
+        cases_deaths_df['cases_incl_unknown'] = cases_deaths_df['cases'] + cases_deaths_df['cases_from_unknown']
+        cases_deaths_df['deaths_incl_unknown'] = cases_deaths_df['deaths'] + cases_deaths_df['deaths_from_unknown']
+
+        # Drop Unused columns
+        # Note that we are dropping "cases" and "deaths" and then renaming the _incl_unknown versions of those metrics
+        cases_deaths_df = cases_deaths_df.drop(['FIPS_State', 'state', 'cases_weighting', 'deaths_weighting', 'fips_code', 'cases_unknown', 'deaths_unknown', 'cases', 'deaths'], axis=1)
+        # Rename cols
+        cases_deaths_df = cases_deaths_df.rename(columns={'cases_incl_unknown': 'cases', 'deaths_incl_unknown': 'deaths'})
 
         # Create smoothed new cases target:
         # Calculate new cases 
