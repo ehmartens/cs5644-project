@@ -23,15 +23,16 @@ class PreProcessor:
     def set_current_data(self, data):
         self.current_data = data
 
-    def load_processed_data(self):
-        self.load_processed_data_without_fips_as_columns() # TODO fix this so that it checks if the current data is already loaded instead of reloading.
-        merged_df = self.get_current_data()
+    def get_processed_data(self, set_current_data=True):
+        merged_df = self.get_processed_data_without_fips_as_columns() # TODO fix this so that it checks if the current data is already loaded instead of reloading.
         # Transform FIPs into boolean columns
         merged_df = self.barClosuresReader.convert_categorical(merged_df) # TODO this is hacky, fix this
         # Set current data
-        self.current_data = merged_df
+        if set_current_data:
+            self.current_data = merged_df
+        return merged_df
 
-    def load_processed_data_without_fips_as_columns(self):
+    def get_processed_data_without_fips_as_columns(self, set_current_data=True):
         # Bring in CDC data and merge with  Vaccinations data
         merged_df = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
         # Bring in Cases and Deaths data and merge to current data
@@ -81,7 +82,9 @@ class PreProcessor:
         # Transform FIPS codes for county into STATE column
         merged_df['STATE'] = merged_df['FIPS'].apply(lambda x: x[:2])
         # Set current data
-        self.current_data = merged_df
+        if set_current_data:
+            self.current_data = merged_df
+        return merged_df
 
     def init_cdc_data(self):
         cdc_regs_df = self.gatheringBansReader.read_and_process_data(state_filter=self.state_filter)
