@@ -23,22 +23,45 @@ class PreProcessor:
     def set_current_data(self, data):
         self.current_data = data
 
-    def load_processed_data(self):
-        self.load_processed_data_without_fips_as_columns() # TODO fix this so that it checks if the current data is already loaded instead of reloading.
-        merged_df = self.get_current_data()
+    def get_processed_data(self, set_current_data=True):
+        merged_df = self.get_processed_data_without_fips_as_columns() # TODO fix this so that it checks if the current data is already loaded instead of reloading.
         # Transform FIPs into boolean columns
         merged_df = self.barClosuresReader.convert_categorical(merged_df) # TODO this is hacky, fix this
         # Set current data
-        self.current_data = merged_df
+        if set_current_data:
+            self.current_data = merged_df
+        return merged_df
 
-    def load_processed_data_without_fips_as_columns(self):
+    def get_processed_data_without_fips_as_columns(self, set_current_data=True):
         # Bring in CDC data and merge with  Vaccinations data
         merged_df = self.init_cdc_data().merge(self.init_vaccinations_data(), how='left', on=['date', 'FIPS'])
         # Bring in Cases and Deaths data and merge to current data
-        merged_df = merged_df.merge(self.init_cases_and_deaths_data(), how='left', on=['date', 'FIPS'])
+        # Use the smoothed version of the new_cases and new_deaths 
+        # Also bring in lagged features of cases and deaths
+        cd_col_list = ['date'
+            , 'FIPS'
+            , 'smoothed_new_cases'
+            , 'smoothed_new_deaths'
+            , '8_days_prior_cases'
+            , '9_days_prior_cases'
+            , '10_days_prior_cases'
+            , '8_days_prior_deaths'
+            , '9_days_prior_deaths'
+            , '10_days_prior_deaths'
+            ]
+        cases_deaths_df = self.init_cases_and_deaths_data()[cd_col_list]
+        # Rename smoothed data to just 'cases' and 'deaths'
+        cases_deaths_df = cases_deaths_df.rename(columns={'smoothed_new_cases' : 'cases', 'smoothed_new_deaths': 'deaths'})
+        merged_df = merged_df.merge(cases_deaths_df, how='left', on=['date', 'FIPS'])
         # Fill NAs in cases and deaths data with 0s
         merged_df['cases'] = merged_df['cases'].fillna(0)
         merged_df['deaths'] = merged_df['deaths'].fillna(0)
+        merged_df['8_days_prior_cases'] = merged_df['8_days_prior_cases'].fillna(0)
+        merged_df['9_days_prior_cases'] = merged_df['9_days_prior_cases'].fillna(0)
+        merged_df['10_days_prior_cases'] = merged_df['10_days_prior_cases'].fillna(0)
+        merged_df['8_days_prior_deaths'] = merged_df['8_days_prior_deaths'].fillna(0)
+        merged_df['9_days_prior_deaths'] = merged_df['9_days_prior_deaths'].fillna(0)
+        merged_df['10_days_prior_deaths'] = merged_df['10_days_prior_deaths'].fillna(0)
         # Make columns numeric (except FIPS and date)
         num_cols = merged_df.columns.drop(['date', 'FIPS'])
         merged_df[num_cols] = merged_df[num_cols].apply(pd.to_numeric, errors='ignore')
@@ -51,13 +74,17 @@ class PreProcessor:
         # Create a 'month' feature based on the date column
         merged_df['date'] = merged_df['date'].astype('datetime64[ns]')
         merged_df['month'] = merged_df['date'].apply(lambda x: x.strftime('%B'))
-        # Create a time index based on the number of days since t0
-        min_date = merged_df['date'].min()
-        merged_df['days_from_start'] = merged_df['date'].apply(lambda x: (x - min_date).days)
+        
+        # # Create a time index based on the number of days since t0
+        # min_date = merged_df['date'].min()
+        # merged_df['days_from_start'] = merged_df['date'].apply(lambda x: (x - min_date).days)
+
         # Transform FIPS codes for county into STATE column
         merged_df['STATE'] = merged_df['FIPS'].apply(lambda x: x[:2])
         # Set current data
-        self.current_data = merged_df
+        if set_current_data:
+            self.current_data = merged_df
+        return merged_df
 
     def init_cdc_data(self):
         cdc_regs_df = self.gatheringBansReader.read_and_process_data(state_filter=self.state_filter)
