@@ -39,7 +39,7 @@ class Modeler:
 
         kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=1)
 
-        nRMSE, r2, var = [], [], []
+        nRMSE, r2 = [], []
 
         for train_index, test_index in kfold.split(X):
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -51,12 +51,10 @@ class Modeler:
 
             nRMSE += [metrics.mean_squared_error(y_test, y_pred, squared=False)]
             r2 += [metrics.r2_score(y_test, y_pred)]
-            var += [metrics.explained_variance_score(y_test, y_pred)]
 
         scores_dict = {
             'RMSE' : (np.mean(nRMSE), np.std(nRMSE)) # Tuple of neg MSE (mean, std) across 5 folds
             , 'r2': (np.mean(r2), np.std(r2)) # Tuple of r2 (mean, std) across 5 folds
-            , 'Explained Variance': (np.mean(var), np.std(var)) # Tuple of r2 (mean, std) across 5 folds    
         }
         return scores_dict
 
