@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn import metrics, model_selection, preprocessing
+import time
 
 class Modeler:
     def __init__(self):
@@ -65,10 +66,12 @@ class Modeler:
         Returns:
         y_pred, rmse, r2
         """
-
+        start = time.time()
         model.fit(X_train, y_train)
+        fit_time = time.time() - start
 
         y_pred = model.predict(X_test)
+        fit_predict_time = time.time() - start
 
         rmse = metrics.mean_squared_error(y_test, y_pred, squared=False)
         r2 = metrics.r2_score(y_test, y_pred)
@@ -76,7 +79,7 @@ class Modeler:
         print('RMSE: %.2f' % rmse)
         print('R^2 Score: %.2f' % r2)
 
-        return y_pred, rmse, r2
+        return y_pred, rmse, r2, fit_time, fit_predict_time
 
 
 
