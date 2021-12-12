@@ -62,7 +62,7 @@ class Reader:
 
 class GatheringBansReader(Reader):
     def __init__(self, home_dir=''):
-        data_path = '../../data/cdc_regs/U.S._State_and_Territorial_Gathering_Bans__March_11__2020-August_15__2021_by_County_by_Day.csv'
+        data_path = '../data/cdc_regs/U.S._State_and_Territorial_Gathering_Bans__March_11__2020-August_15__2021_by_County_by_Day.csv'
         super().__init__(home_dir, data_path)
         if not self.check_data_exists():
             print(f'Gathering bans data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
@@ -131,14 +131,14 @@ class GatheringBansReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/gathering_bans_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/gathering_bans_df.csv'
             gathering_bans_df.to_csv(export_path, index=False)
         # Return processed df
         return gathering_bans_df
 
 class MaskMandatesReader(Reader):
     def __init__(self, home_dir=''):
-        data_path = '../../data/cdc_regs/U.S._State_and_Territorial_Public_Mask_Mandates_From_April_10__2020_through_August_15__2021_by_County_by_Day.csv'
+        data_path = '../data/cdc_regs/U.S._State_and_Territorial_Public_Mask_Mandates_From_April_10__2020_through_August_15__2021_by_County_by_Day.csv'
         super().__init__(home_dir, data_path)
         if not self.check_data_exists():
             print(f'Mask Mandates data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
@@ -186,14 +186,14 @@ class MaskMandatesReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/mask_mandates_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/mask_mandates_df.csv'
             mask_mandates_df.to_csv(export_path, index=False)
         # Return processed df
         return mask_mandates_df
 
 class StayAtHomeOrdersReader(Reader):
     def __init__(self, home_dir=''):
-        data_path = '../../data/cdc_regs/U.S._State_and_Territorial_Stay-At-Home_Orders__March_15__2020___August_15__2021_by_County_by_Day.csv'
+        data_path = '../data/cdc_regs/U.S._State_and_Territorial_Stay-At-Home_Orders__March_15__2020___August_15__2021_by_County_by_Day.csv'
         super().__init__(home_dir, data_path)
         if not self.check_data_exists():
             print(f'Stay at Home Order data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
@@ -260,14 +260,14 @@ class StayAtHomeOrdersReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/stay_at_home_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/stay_at_home_df.csv'
             stay_at_home_df.to_csv(export_path, index=False)
         # Return processed df
         return stay_at_home_df
 
 class BarClosuresReader(Reader):
     def __init__(self, home_dir=''):
-        data_path = '../../data/cdc_regs/U.S._State_and_Territorial_Orders_Closing_and_Reopening_Bars_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv'
+        data_path = '../data/cdc_regs/U.S._State_and_Territorial_Orders_Closing_and_Reopening_Bars_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv'
         super().__init__(home_dir, data_path)
         if not self.check_data_exists():
             print(f'Bar closures data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
@@ -341,14 +341,14 @@ class BarClosuresReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/bars_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/bars_df.csv'
             bars_df.to_csv(export_path, index=False)
         # Return processed df
         return bars_df
 
 class RestaurantClosuresReader(Reader):
     def __init__(self, home_dir=''):
-        data_path = '../../data/cdc_regs/U.S._State_and_Territorial_Orders_Closing_and_Reopening_Restaurants_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv'
+        data_path = '../data/cdc_regs/U.S._State_and_Territorial_Orders_Closing_and_Reopening_Restaurants_Issued_from_March_11__2020_through_August_15__2021_by_County_by_Day.csv'
         super().__init__(home_dir, data_path)
         if not self.check_data_exists():
             print(f'Restaurant closures data not found at {home_dir + data_path}. Please manually download the data. See data/README.md for more information.')
@@ -424,7 +424,7 @@ class RestaurantClosuresReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/restaurants_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/restaurants_df.csv'
             restaurants_df.to_csv(export_path, index=False)
         # Return processed df
         return restaurants_df
@@ -553,7 +553,7 @@ class CasesAndDeathsReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/cases_deaths_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/cases_deaths_df.csv'
             cases_deaths_df.to_csv(export_path, index=False)
         # Return processed df
         return cases_deaths_df
@@ -606,7 +606,7 @@ class VaccinationsReader(Reader):
         # Export if desired:
         if export:
             if export_path is None:
-                export_path = self.home_dir + '../../data/transformed_data/vaccinations_df.csv'
+                export_path = self.home_dir + '../data/transformed_data/vaccinations_df.csv'
             vaccinations_df.to_csv(export_path, index=False)
         # Return processed df
         return vaccinations_df
